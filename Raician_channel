@@ -1,0 +1,50 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Constants
+c = 3e8  # Speed of light in meters per second
+frequency = 2.4e9  # Frequency in Hz (e.g., 2.4 GHz)
+wavelength = c / frequency
+
+# Define the distance range
+min_distance = 1  # Minimum distance in meters
+max_distance = 100  # Maximum distance in meters
+num_points = 100  # Number of distance points
+
+# Rician fading parameters
+K = 10  # Rician K-factor, controls the strength of the LoS component
+
+# Generate distances within the specified range
+distances = np.linspace(min_distance, max_distance, num_points)
+
+# Calculate the path loss using the Friis path loss model
+path_loss = (wavelength / (4 * np.pi * distances)) ** 2
+
+# Generate complex Rician-distributed fading samples for each distance point
+complex_rician_samples = []
+for pl in path_loss:
+    # Calculate the power of the LoS and scattered components
+    P_los = pl / (1 + K)
+    P_scattered = K * pl / (1 + K)
+
+    # Generate the LoS component
+    real_part_los = np.sqrt(P_los) * np.random.normal(0, 1)
+    imaginary_part_los = np.sqrt(P_los) * np.random.normal(0, 1)
+    
+    # Generate the scattered component
+    real_part_scattered = np.random.normal(0, np.sqrt(P_scattered / 2))
+    imaginary_part_scattered = np.random.normal(0, np.sqrt(P_scattered / 2))
+    
+    # Combine the LoS and scattered components to create the Rician fading sample
+    complex_sample = (real_part_los + real_part_scattered) + 1j * (imaginary_part_los + imaginary_part_scattered)
+    complex_rician_samples.append(complex_sample)
+
+# Plot the complex Rician fading channel based on distance
+plt.figure()
+plt.plot(distances, np.abs(complex_rician_samples), label='Amplitude', color='b')
+plt.title('Complex Rician Fading Channel vs. Distance')
+plt.xlabel('Distance (meters)')
+plt.ylabel('Amplitude')
+plt.grid(True)
+plt.legend()
+plt.show()
